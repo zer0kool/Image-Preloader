@@ -1,0 +1,44 @@
+
+let elScope = 'img'
+let preImages = document.querySelectorAll(elScope);
+var imgInScope = [];
+var preloadImages = [];
+preImages.forEach(image => {
+    let imgSrc = image.src;
+    let imgType = (/\.(gif|jpg|jpeg|tiff|png)$/i).test(imgSrc)
+    if (imgType){ 
+        imgInScope.push(imgSrc);
+    }   
+})
+  
+imgInScope.forEach( image => {
+    var xhr = new XMLHttpRequest();
+    xhr.open('HEAD', `${image}`, true);
+    xhr.onreadystatechange = () => {
+        if ( xhr.readyState == 4 ){
+            if ( xhr.status == 200 ){
+                var imgWeight = xhr.getResponseHeader('Content-Length');
+                if ( imgWeight > 26000 ){                
+                    var heavyImage = image;
+                    preloadImages.push(heavyImage);
+                    console.log(`[HEAVY]Image weight in bytes: ${imgWeight} -- ${heavyImage}`);
+                }
+                if ( imgWeight < 26000 ){
+                    console.log(`[OK]Image weight in bytes: ${imgWeight} -- ${image}`);        
+                }  
+            }else{
+                console.log('ERROR');
+            }
+        }
+    };
+    xhr.send(null);
+})
+
+preloadImages.forEach( imgsrc => {
+    let link = document.createElement('link');
+    link.setAttribute('preload', ''); 
+    link.setAttribute('src', imgsrc); 
+    link.setAttribute('as', 'image');
+    let target = document.querySelector('head');
+    target.append(link);
+})
